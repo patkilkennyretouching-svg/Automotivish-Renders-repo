@@ -68,4 +68,4 @@ with col2:
     st.subheader("⛵ Midjourney")
     st.code(mj_prompt, language="text")
     st.caption("Click the icon in the top right of the box to copy.")
-        st.write("Prompt copied to clipboard! (Simulated)")
+    st.write("Prompt copied to clipboard! (Simulated)")
