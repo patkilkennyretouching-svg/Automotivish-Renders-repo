@@ -34,7 +34,7 @@ with st.sidebar.expander("📷 Camera, Lens & Angle", expanded=True):
 # --- SIDEBAR: THE VEHICLE ---
 with st.sidebar.expander("🚗 Vehicle Details", expanded=False):
     brand = st.text_input("Brand/Model", "Porsche 911 Turbo S")
-    finish = st.selectbox("Paint Finish", ["Nardo Gray", "Frozen Matte Black", "Liquid Silver", "British Racing Green", "Candy Apple Red", "Exposed Carbon Fiber"])
+    finish = st.selectbox("Paint Finish", ["Nardo Gray", "Frozen Matte Black", "Liquid Silver", "Navarra Blue", "British Racing Green", "Candy Apple Red", "Exposed Carbon Fiber"])
     
     wheels = st.selectbox("Wheels & Tires", [
         "Center-lock Racing Alloys",
