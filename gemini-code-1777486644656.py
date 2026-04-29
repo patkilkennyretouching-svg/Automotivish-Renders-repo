@@ -68,5 +68,4 @@ with col2:
     st.subheader("⛵ Midjourney")
     st.code(mj_prompt, language="text")
     st.caption("Click the icon in the top right of the box to copy.")
-    if st.button("Copy MJ Prompt"):
         st.write("Prompt copied to clipboard! (Simulated)")
