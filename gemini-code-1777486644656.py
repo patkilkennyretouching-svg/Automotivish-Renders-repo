@@ -1,45 +1,58 @@
 import streamlit as st
 
-# Page Config
-st.set_page_config(page_title="AI Render Architect", page_icon="🎨")
-st.title("🎨 AI Render Architect")
-st.subheader("Generate pro-level prompts for Nano Banana & Midjourney")
+st.set_page_config(page_title="Pro Automotive Render Architect", page_icon="🏎️", layout="wide")
 
-# --- SIDEBAR PARAMETERS ---
-st.sidebar.header("Configuration")
+st.title("🏎️ Pro Automotive Render Architect")
+st.markdown("---")
 
-# 1. Subject & Action
-subject = st.sidebar.text_input("Core Subject", "A futuristic electric sports car")
-action = st.sidebar.text_input("Action/Context", "driving through a neon-lit cyberpunk city")
+# --- SIDEBAR: THE GARAGE ---
+st.sidebar.header("🚗 Vehicle Configuration")
 
-# 2. Camera & Lens
-camera = st.sidebar.selectbox("Camera Body", ["Hasselblad X2D", "Sony FX3 Cinema", "Leica M11", "Fujifilm GFX100 II", "GoPro Hero 12"])
-lens = st.sidebar.selectbox("Lens Type", ["35mm Street Lens", "85mm Portrait (f/1.2)", "24mm Wide Angle", "Macro Lens", "Anamorphic Lens"])
+use_custom = st.sidebar.checkbox("Use Custom Subject?")
+if use_custom:
+    subject = st.sidebar.text_input("Custom Subject", "A vintage motorcycle")
+else:
+    brand = st.sidebar.selectbox("Car Brand", ["Porsche", "Audi", "Plymouth", "Ferrari", "Lamborghini", "Tesla", "BMW"])
+    model_type = st.sidebar.text_input("Specific Model (Optional)", "911 GT3 RS")
+    subject = f"{brand} {model_type}".strip()
 
-# 3. Lighting & Mood
-lighting = st.sidebar.select_slider("Lighting Style", 
-    options=["Golden Hour", "Chiaroscuro (High Contrast)", "Softbox Studio", "Neon Cyberpunk", "Overcast/Moody"])
+finish = st.sidebar.selectbox("Paint Finish", 
+    ["Nardo Gray", "High-Gloss Metallic", "Matte Stealth Black", "Candy Apple Red", "Satin Pearl White", "Raw Carbon Fiber"])
 
-# 4. Technical Specs
-aspect_ratio = st.sidebar.selectbox("Aspect Ratio", ["16:9", "4:5", "1:1", "9:16", "21:9"])
-stylize = st.sidebar.slider("Midjourney Stylize (--s)", 0, 1000, 250)
-chaos = st.sidebar.slider("Midjourney Chaos (--c)", 0, 100, 0)
+# --- SIDEBAR: THE SETTING ---
+st.sidebar.header("🌍 Environment & Mood")
 
-# --- PROMPT LOGIC ---
+location = st.sidebar.selectbox("Location", [
+    "Scenic Coastal Highway at sunset",
+    "Industrial Warehouse District with puddles",
+    "Trendy Urban Coffee Shop exterior",
+    "Modernist Concrete Villa driveway",
+    "Neon-drenched Tokyo Underground",
+    "Salt Flats under a midday sun"
+])
 
-# Nano Banana 2 Logic (Natural Language & Descriptive)
+# Lighting & Tech (kept from before)
+lighting = st.sidebar.select_slider("Lighting", 
+    options=["Golden Hour", "Cinematic Rim Lighting", "Softbox Studio", "Harsh Midday", "Moody Overcast"])
+
+camera = st.sidebar.selectbox("Camera", ["Hasselblad X2D", "Sony FX3 Cinema", "Leica M11"])
+aspect_ratio = st.sidebar.selectbox("Aspect Ratio", ["16:9", "4:5", "1:1", "21:9"])
+
+# --- GENERATION LOGIC ---
+
+# Nano Banana 2 (Natural, Context-heavy)
 nano_prompt = (
-    f"A high-end commercial render of {subject}, {action}. "
-    f"Shot on {camera} with a {lens}. Lighting is {lighting}. "
-    f"Intended for a luxury marketing campaign, 4K resolution, hyper-realistic textures, "
-    f"cinematic color grading. Aspect ratio {aspect_ratio}."
+    f"A high-end commercial automotive photograph of a {subject} featuring a {finish} finish. "
+    f"The car is positioned at a {location}. Shot on {camera}. "
+    f"Lighting: {lighting}. 8k resolution, photorealistic, intricate textures, sharp focus, "
+    f"commercial car advertisement style. Aspect ratio {aspect_ratio}."
 )
 
-# Midjourney Logic (Shorthand & Flags)
+# Midjourney (Tokenized)
 mj_ar = aspect_ratio.replace(":", ":")
 mj_prompt = (
-    f"{subject}, {action}, shot on {camera}, {lens}, {lighting} lighting, "
-    f"commercial photography style --ar {mj_ar} --s {stylize} --c {chaos} --v 6.0"
+    f"{subject}, {finish} paint, {location}, shot on {camera}, {lighting} lighting, "
+    f"automotive photography, advertising style, hyper-realistic --ar {mj_ar} --v 6.0"
 )
 
 # --- DISPLAY ---
