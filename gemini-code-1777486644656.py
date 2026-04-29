@@ -43,20 +43,17 @@ mj_prompt = (
 )
 
 # --- DISPLAY ---
-st.divider()
-
 col1, col2 = st.columns(2)
 
 with col1:
-    st.header("🍌 Nano Banana 2")
-    st.info("Best for Google Gemini/Nano Banana interfaces.")
+    st.subheader("🍌 Nano Banana 2")
+    # Using st.code with no button—it has a built-in copy button!
     st.code(nano_prompt, language="text")
-    if st.button("Copy Nano Prompt"):
-        st.write("Prompt copied to clipboard! (Simulated)")
+    st.caption("Click the icon in the top right of the box to copy.")
 
 with col2:
-    st.header("⛵ Midjourney")
-    st.info("Optimized with --flags for Discord/Web.")
+    st.subheader("⛵ Midjourney")
     st.code(mj_prompt, language="text")
+    st.caption("Click the icon in the top right of the box to copy.")
     if st.button("Copy MJ Prompt"):
         st.write("Prompt copied to clipboard! (Simulated)")
