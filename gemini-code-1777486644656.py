@@ -1,9 +1,15 @@
+import html
 import json
 import random
 
 import streamlit as st
 
-st.set_page_config(page_title="Automotive Director Suite: Cinematic Edition", page_icon="🏎️", layout="wide")
+st.set_page_config(
+    page_title="Automotive Director Suite: Cinematic Edition",
+    page_icon="🏎️",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
 # ---------------------------------------------------------------------------
 # OPTIONS
@@ -331,7 +337,7 @@ VEHICLES = {
         "Rolls-Royce Silver Ghost (1920s, classic)", "Rolls-Royce Silver Cloud (1955, classic)",
         "Rolls-Royce Corniche (1970s, classic)",
     ],
-    CUSTOM: ["(use the custom vehicle box)"],
+    CUSTOM: ["(custom vehicle)"],
 }
 
 PRIORITY_MAKES = ["Mercedes-Benz", "Porsche", "Ford", "Land Rover"]
@@ -661,97 +667,177 @@ def load_from_file():
 
 
 # ---------------------------------------------------------------------------
-# PAGE
+# LOOK AND FEEL
+# Neutral studio gray with a tungsten accent (Nano Banana) and a strobe-blue
+# accent (Midjourney). The live "slate" at the top is the one standout element.
 # ---------------------------------------------------------------------------
-st.title("🏎️ Automotive Director Suite: Cinematic Edition")
-st.markdown("---")
+STYLE = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+.stApp, .stApp p, .stApp label, .stApp li, .stApp input, .stApp textarea, .stApp button,
+.stApp [data-baseweb="select"], .stApp [data-testid="stCaptionContainer"] {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+footer { visibility: hidden; }
+[data-testid="stHeader"] { background: transparent; }
+.block-container { padding-top: 2.2rem; max-width: 1200px; }
+[data-testid="stSidebarUserContent"] { padding-top: 1.6rem; }
+
+/* page title */
+.app-title { font-family: 'Archivo', sans-serif; font-stretch: 115%; font-weight: 650;
+  font-size: 1.05rem; letter-spacing: .01em; margin: 0 0 .8rem; }
+.app-title span { font-family: 'IBM Plex Sans', sans-serif; font-stretch: 100%; font-weight: 400;
+  opacity: .6; margin-left: .8rem; }
+.side-title { font-family: 'Archivo', sans-serif; font-stretch: 112%; font-weight: 650;
+  font-size: 1.15rem; margin: 0 0 .6rem; }
+
+/* the slate: live summary of the current shot */
+.slate { background: #1E1F21; color: #ECEBE6; border: 1px solid #43464B; border-radius: 6px;
+  overflow: hidden; margin-bottom: 1.6rem; box-shadow: 0 12px 32px rgba(0,0,0,.28); }
+.slate-bar { height: 14px;
+  background: repeating-linear-gradient(-45deg, #ECEBE6 0 14px, #1E1F21 14px 28px); }
+.slate-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem;
+  padding: 1.1rem 1.4rem 1rem; }
+.slate-name { font-family: 'Archivo', sans-serif; font-stretch: 118%; font-weight: 700;
+  font-size: clamp(1.35rem, 2.8vw, 2.15rem); line-height: 1.08; }
+.slate-mode { font-size: .85rem; color: #E9A23B; border: 1px solid #E9A23B; border-radius: 3px;
+  padding: .15rem .6rem; white-space: nowrap; }
+.slate-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: #43464B;
+  border-top: 1px solid #43464B; }
+.slate-cell { background: #1E1F21; padding: .65rem 1.4rem .8rem; min-width: 0; }
+.slate-cell span { display: block; font-size: .74rem; color: #9EA0A4; margin-bottom: .15rem; }
+.slate-cell b { display: block; font-weight: 500; font-size: .94rem; line-height: 1.3;
+  overflow-wrap: anywhere; }
+@media (max-width: 900px) { .slate-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* prompt panels */
+.out-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem;
+  border-top: 3px solid var(--rule); padding: .7rem 0 .55rem; margin-top: .3rem; }
+.out-nano { --rule: #E9A23B; }
+.out-mj { --rule: #8DB6E6; }
+.out-title { font-family: 'Archivo', sans-serif; font-stretch: 112%; font-weight: 650;
+  font-size: 1.2rem; line-height: 1.2; }
+.out-sub { font-size: .82rem; opacity: .65; }
+.out-count { font-size: .8rem; opacity: .65; white-space: nowrap; }
+[data-testid="stCode"] pre, [data-testid="stCode"] code {
+  white-space: pre-wrap !important; word-break: break-word;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace !important;
+  font-size: .84rem !important; line-height: 1.65 !important; }
+[data-testid="stCode"] pre { border-radius: 6px; }
+
+/* section headings inside tabs */
+.section { font-family: 'Archivo', sans-serif; font-stretch: 108%; font-weight: 600;
+  font-size: 1.02rem; padding-bottom: .4rem; margin: .2rem 0 .7rem;
+  border-bottom: 1px solid rgba(128,128,128,.3); }
+
+/* controls */
+[data-testid="stExpander"] details { border-radius: 6px; }
+[data-testid="stExpander"] summary p { font-weight: 600; }
+[data-baseweb="select"] > div, [data-baseweb="input"] > div { border-radius: 6px; }
+.stButton > button, .stDownloadButton > button { border-radius: 6px; font-weight: 500; }
+.stButton > button[kind="primary"], [data-testid="stBaseButton-primary"] {
+  color: #1E1F21 !important; font-weight: 600; }
+button[role="tab"] { font-weight: 500; }
+button[role="tab"] p { font-size: .98rem; }
+</style>
+"""
+st.markdown(STYLE, unsafe_allow_html=True)
+
+
+def esc(value):
+    return html.escape(str(value))
+
+
+def short(label):
+    """'Technicolor (Vintage 70s...)' -> 'Technicolor' for compact display."""
+    return label.split(" (")[0]
+
+
+def slate_html(name, mode, cells):
+    items = "".join(f'<div class="slate-cell"><span>{esc(k)}</span><b>{esc(v)}</b></div>' for k, v in cells)
+    return (
+        f'<div class="slate"><div class="slate-bar"></div>'
+        f'<div class="slate-top"><div class="slate-name">{esc(name)}</div>'
+        f'<div class="slate-mode">{esc(mode)}</div></div>'
+        f'<div class="slate-grid">{items}</div></div>'
+    )
+
+
+def panel_head(css_class, title, sub, word_count):
+    return (
+        f'<div class="out-head {css_class}"><div><div class="out-title">{esc(title)}</div>'
+        f'<div class="out-sub">{esc(sub)}</div></div>'
+        f'<div class="out-count">{word_count} words</div></div>'
+    )
+
+
+# ---------------------------------------------------------------------------
+# PAGE HEADER (the slate itself is filled in once the settings are read)
+# ---------------------------------------------------------------------------
+st.markdown(
+    '<div class="app-title">Automotive Director Suite<span>Cinematic Edition</span></div>',
+    unsafe_allow_html=True,
+)
+slate_slot = st.empty()
 
 # ---------------------------------------------------------------------------
 # SIDEBAR
 # ---------------------------------------------------------------------------
 sb = st.sidebar
-sb.radio("Shot Type", ["Exterior", "Interior"], key="shot_type", horizontal=True)
+sb.markdown('<div class="side-title">Shot settings</div>', unsafe_allow_html=True)
+sb.radio("Shot type", ["Exterior", "Interior"], key="shot_type", horizontal=True)
 interior = st.session_state.shot_type == "Interior"
+if interior:
+    sb.caption("Interior mode turns off paint, wheels, weather, motion blur, and effects.")
 
-sb.button("🎲 Randomize look", on_click=randomize, use_container_width=True)
+sb.button("Randomize look", on_click=randomize, type="primary", use_container_width=True)
+sb.button("Random vehicle", on_click=random_vehicle, use_container_width=True)
 
-with sb.expander("🚘 Vehicle", expanded=True):
+with sb.expander("Vehicle", expanded=True):
     st.selectbox("Make", MAKES, key="make", on_change=on_make_change)
-    st.selectbox(
-        "Model (type to search)", VEHICLES[st.session_state.make], key="model",
-        disabled=st.session_state.make == CUSTOM,
-    )
-    st.text_input(
-        "Custom vehicle", key="custom_vehicle", placeholder="e.g. 1967 Volvo P1800",
-        disabled=st.session_state.make != CUSTOM,
-    )
-    st.button("🎲 Random vehicle", on_click=random_vehicle)
+    if st.session_state.make == CUSTOM:
+        st.text_input("Custom vehicle", key="custom_vehicle", placeholder="e.g. 1967 Volvo P1800")
+    else:
+        st.selectbox("Model (type to search)", VEHICLES[st.session_state.make], key="model")
+    st.selectbox("Paint", paint_options(st.session_state.make), key="finish", disabled=interior)
+    if st.session_state.finish == CUSTOM_PAINT:
+        st.text_input("Custom color", key="custom_paint", placeholder="e.g. Gulf Blue, satin olive wrap")
+    st.selectbox("Wheels", WHEELS, key="wheels", disabled=interior)
 
-with sb.expander("📷 Camera & Motion", expanded=False):
-    st.selectbox("Exterior Camera Angle", EXTERIOR_ANGLES, key="angle", disabled=interior)
-    st.selectbox("Interior Camera Angle", INTERIOR_ANGLES, key="interior_angle", disabled=not interior)
+with sb.expander("Camera and motion", expanded=False):
+    st.selectbox("Exterior angle", EXTERIOR_ANGLES, key="angle", disabled=interior)
+    st.selectbox("Interior angle", INTERIOR_ANGLES, key="interior_angle", disabled=not interior)
     st.selectbox("Lens", LENSES, key="lens")
-    st.toggle("Enable Motion Blur?", key="motion_blur", disabled=interior)
+    st.toggle("Motion blur", key="motion_blur", disabled=interior)
     st.select_slider(
-        "Perceived Speed", options=SPEEDS, key="speed",
+        "Speed", options=SPEEDS, key="speed",
         disabled=interior or not st.session_state.motion_blur,
     )
 
-with sb.expander("🎬 Vibe & Color Grade", expanded=False):
-    st.selectbox("Color Grade", list(VIBES), key="vibe")
-    st.radio("Render Style", RENDER_STYLES, key="render_style", horizontal=True)
+with sb.expander("Look and light", expanded=False):
+    st.selectbox("Color grade", list(VIBES), key="vibe")
+    st.selectbox("Lighting style", list(LIGHTING), key="lighting")
+    st.radio("Render style", RENDER_STYLES, key="render_style", horizontal=True)
+    st.multiselect("Effects", SFX_OPTIONS, key="sfx", disabled=interior)
 
-with sb.expander("💡 Lighting Modifiers", expanded=False):
-    st.selectbox("Lighting Style", list(LIGHTING), key="lighting")
+with sb.expander("Interior", expanded=False):
+    st.selectbox("Leather", LEATHERS, key="int_material", disabled=not interior)
+    st.selectbox("Stitching and trim", INT_DETAILS, key="int_detail", disabled=not interior)
 
-with sb.expander("🔥 Physical Effects (SFX)", expanded=False):
-    st.multiselect("Active Elements", SFX_OPTIONS, key="sfx", disabled=interior)
-
-with sb.expander("🛋️ Interior Luxury", expanded=False):
-    st.selectbox("Leather Type", LEATHERS, key="int_material")
-    st.selectbox("Stitching/Finish", INT_DETAILS, key="int_detail")
-
-with sb.expander("🚗 Exterior & Paint", expanded=False):
-    st.selectbox("Paint", paint_options(st.session_state.make), key="finish")
-    st.text_input(
-        "Custom color", key="custom_paint", placeholder="e.g. Gulf Blue, satin olive wrap",
-        disabled=st.session_state.finish != CUSTOM_PAINT,
-    )
-    st.selectbox("Wheels", WHEELS, key="wheels")
-
-with sb.expander("☁️ Environment", expanded=False):
-    st.selectbox("Time", TIMES, key="time_of_day")
+with sb.expander("Environment", expanded=False):
+    st.selectbox("Time of day", TIMES, key="time_of_day")
     st.selectbox("Weather", WEATHERS, key="weather", disabled=interior)
 
-with sb.expander("🚫 Avoid (Negative Prompt)", expanded=False):
-    st.multiselect("Common problems to avoid", NEGATIVE_OPTIONS, key="negatives")
+with sb.expander("Avoid", expanded=False):
+    st.multiselect("Common problems", NEGATIVE_OPTIONS, key="negatives")
     st.text_input("Anything else (comma-separated)", key="custom_negative")
 
-with sb.expander("⛵ Midjourney Settings", expanded=False):
+with sb.expander("Midjourney settings", expanded=False):
     st.selectbox("Version", MJ_VERSIONS, key="mj_version")
-    st.selectbox("Aspect Ratio", ASPECTS, key="aspect")
+    st.selectbox("Aspect ratio", ASPECTS, key="aspect")
     st.slider("Stylize", 0, 1000, key="stylize")
-    st.checkbox("Raw style (less 'Midjourney look')", key="mj_raw")
-
-with sb.expander("💾 Presets", expanded=False):
-    st.text_input("Preset name", key="preset_name")
-    st.button("Save current settings", on_click=save_preset)
-    if st.session_state.presets:
-        st.selectbox("Saved presets", list(st.session_state.presets), key="preset_choice")
-        c1, c2 = st.columns(2)
-        c1.button("Load", on_click=load_preset)
-        c2.button("Delete", on_click=delete_preset)
-    st.caption("Presets last until you close the tab. Download to keep them.")
-    st.download_button(
-        "⬇️ Download settings (JSON)",
-        data=json.dumps(snapshot(), indent=2),
-        file_name="automotive_preset.json",
-        mime="application/json",
-    )
-    st.file_uploader("Load settings file", type="json", key="preset_file")
-    st.button("Apply uploaded file", on_click=load_from_file)
-    if st.session_state.preset_error:
-        st.warning("That file couldn't be read as a settings file.")
+    st.checkbox("Raw style (less of the Midjourney look)", key="mj_raw")
 
 # ---------------------------------------------------------------------------
 # PROMPT GENERATION
@@ -827,18 +913,72 @@ if neg_text:
 mj_prompt += mj_flags
 
 # ---------------------------------------------------------------------------
-# DISPLAY
+# SLATE (top of page)
 # ---------------------------------------------------------------------------
-col1, col2 = st.columns(2)
-with col1:
-    st.subheader("🍌 Nano Banana 2")
-    st.code(nano_prompt, language="text")
-    st.caption(f"{len(nano_prompt.split())} words")
-with col2:
-    st.subheader("⛵ Midjourney")
-    st.code(mj_prompt, language="text")
-    st.caption(f"{len(mj_prompt.split())} words")
-
+avoid_count = f"{len(negatives)} term{'s' if len(negatives) != 1 else ''}" if negatives else "None"
 if interior:
-    st.info("💡 Interior mode: exterior angles, weather, motion blur, and SFX are turned off. "
-            "An 85mm lens gives nice depth of field on leather stitching.")
+    cells = [
+        ("Leather", ss.int_material), ("Stitching and trim", ss.int_detail),
+        ("Angle", angle_used), ("Lens", ss.lens), ("Window light", ss.time_of_day),
+        ("Lighting", short(ss.lighting)), ("Color grade", short(ss.vibe)),
+        ("Render style", ss.render_style), ("Aspect ratio", ss.aspect), ("Avoiding", avoid_count),
+    ]
+else:
+    cells = [
+        ("Paint", paint_name), ("Wheels", ss.wheels), ("Angle", angle_used), ("Lens", ss.lens),
+        ("Time and weather", f"{ss.time_of_day}, {ss.weather}"),
+        ("Lighting", short(ss.lighting)), ("Color grade", short(ss.vibe)),
+        ("Motion", ss.speed if ss.motion_blur else "Static"),
+        ("Effects", ", ".join(ss.sfx) if ss.sfx else "None"), ("Render style", ss.render_style),
+    ]
+slate_slot.markdown(slate_html(vehicle, ss.shot_type, cells), unsafe_allow_html=True)
+
+# ---------------------------------------------------------------------------
+# MAIN CONTENT
+# ---------------------------------------------------------------------------
+tab_prompts, tab_presets = st.tabs(["Prompts", "Presets"])
+
+with tab_prompts:
+    col1, col2 = st.columns(2, gap="large")
+    with col1:
+        st.markdown(
+            panel_head("out-nano", "Nano Banana 2", "Paste into Gemini image generation",
+                       len(nano_prompt.split())),
+            unsafe_allow_html=True,
+        )
+        st.code(nano_prompt, language="text")
+    with col2:
+        st.markdown(
+            panel_head("out-mj", "Midjourney", f"Version {ss.mj_version}, aspect ratio {ss.aspect}",
+                       len(mj_prompt.split())),
+            unsafe_allow_html=True,
+        )
+        st.code(mj_prompt, language="text")
+    st.caption("Use the copy icon at the top right of a prompt to copy it.")
+
+with tab_presets:
+    left, right = st.columns(2, gap="large")
+    with left:
+        st.markdown('<div class="section">Saved setups</div>', unsafe_allow_html=True)
+        st.text_input("Preset name", key="preset_name", placeholder="Nordic high-key, front three-quarter")
+        st.button("Save preset", on_click=save_preset)
+        if st.session_state.presets:
+            st.selectbox("Saved presets", list(st.session_state.presets), key="preset_choice")
+            b1, b2 = st.columns(2)
+            b1.button("Load preset", on_click=load_preset, use_container_width=True)
+            b2.button("Delete preset", on_click=delete_preset, use_container_width=True)
+        else:
+            st.caption("No saved presets yet. Name your current setup and select Save preset.")
+        st.caption("Saved presets last until you close this tab. Download a settings file to keep one.")
+    with right:
+        st.markdown('<div class="section">Settings file</div>', unsafe_allow_html=True)
+        st.download_button(
+            "Download settings",
+            data=json.dumps(snapshot(), indent=2),
+            file_name="automotive_preset.json",
+            mime="application/json",
+        )
+        st.file_uploader("Upload a settings file", type="json", key="preset_file")
+        st.button("Apply uploaded file", on_click=load_from_file)
+        if st.session_state.preset_error:
+            st.warning("That file isn't a valid settings file. Download one from this page and try again.")
